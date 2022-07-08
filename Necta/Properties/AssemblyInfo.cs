@@ -6,12 +6,12 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Necta")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Developed by Vlad Somai for Meals.lv")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Meals.lv")]
 [assembly: AssemblyProduct("Necta")]
-[assembly: AssemblyCopyright("Copyright ©  2022")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Vlad Somai ©  2022")]
+[assembly: AssemblyTrademark("Vlad Somai")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible
