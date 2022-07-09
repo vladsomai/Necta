@@ -1,6 +1,8 @@
 ﻿using Necta.API;
 using System;
 using System.Collections.Generic;
+using System.Media;
+using System.Text.Json;
 using System.Threading;
 
 namespace Necta.NectaServices
@@ -14,6 +16,7 @@ namespace Necta.NectaServices
             PrintReceiptDelegate PRdel = new PrintReceiptDelegate(Necta.PrintReceipt);
 
             List<Receipt> receipts = null;
+
             while (true)
             {
                 Thread.Sleep(API_Handler.API_REQUEST_INTERVAL);
@@ -33,6 +36,7 @@ namespace Necta.NectaServices
                 {
                     NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
                     NectaLogService.WriteLog(ex.InnerException?.Message, LogLevels.ERROR);
+                    continue;
                 }
 
                 if (receipts.Count == 0)
@@ -43,10 +47,52 @@ namespace Necta.NectaServices
 
                 foreach (Receipt receipt in receipts)
                 {
+                    PrinterInfo printer = null;
                     try
                     {
+                        printer = WinPrinter.GetPrinterInfo(receipt.PrinterName);
+
+                    }
+                    catch(Exception ex)
+                    {
+                        NectaLogService.WriteLog("The Printer's info could not be fetched because: ", LogLevels.ERROR);
+                        NectaLogService.WriteLog("Invalid printer name for receipt ID: " + receipt.ID, LogLevels.ERROR);
+                        NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
+                    }
+
+                    try 
+                    {
+                        if (printer == null) continue;
+
+                        if (printer.HasPaperProblem ||
+                        !printer.HasToner ||
+                        printer.IsInError ||
+                        printer.IsNotAvailable ||
+                        printer.IsOffline ||
+                        printer.IsOutOfPaper ||
+                        printer.IsPaperJammed ||
+                        printer.IsTonerLow ||
+                        printer.NeedUserIntervention)
+                        {
+                            PrinterError printerError = new PrinterError();
+                            printerError.API_GET_URI = API_Handler.API_GET_URI.ToString();
+                            printerError.PrinterID = receipt.ID.ToString();
+                            printerError.printerInfo = printer;
+
+                            if (API_Handler.API_PRINTER_INFO_URI == null)
+                            {
+                                NectaLogService.WriteLog("Cannot send printer info because PRINTER_INFO_URI is not valid.", LogLevels.ERROR);
+                                continue;
+                            }
+                            
+                            NectaLogService.WriteLog("Printer has an error, please check the printer info below:", LogLevels.ERROR);
+                            var options = new JsonSerializerOptions { WriteIndented = true };
+                            NectaLogService.WriteLog(JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
+                            API_Handler.SendPrinterErrorInfo(printerError, API_Handler.API_PRINTER_INFO_URI.ToString());
+                            continue;
+                        }
+
                         Necta.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });//call PrintReceipt from main thread
-                        API_Handler.UpdateReceipt(receipt.ID, API_Handler.API_UPDATE_URI.ToString());
                     }
                     catch (Exception ex)
                     {

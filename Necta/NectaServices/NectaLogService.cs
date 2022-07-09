@@ -31,7 +31,7 @@ namespace Necta.NectaServices
             }
         }
 
-        public static void CreateService()
+        public static void RunService()
         {
             if (serviceInstance == null)
                 serviceInstance = new NectaLogService();

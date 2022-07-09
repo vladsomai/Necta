@@ -7,7 +7,7 @@ namespace Necta
 {
     static class Program
     {
-        public static Thread logServiceThread = new Thread(NectaLogService.CreateService);
+        public static Thread logServiceThread = new Thread(NectaLogService.RunService);
         public static Thread service = new Thread(NectaService.RunService);
      
         /// <summary>
