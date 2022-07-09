@@ -1,7 +1,6 @@
 ﻿using Necta.API;
 using System;
 using System.Collections.Generic;
-using System.Media;
 using System.Text.Json;
 using System.Threading;
 
@@ -10,10 +9,12 @@ namespace Necta.NectaServices
     class NectaService
     {
         public delegate void PrintReceiptDelegate(Receipt receipt);
+        public delegate void LoadHtmlDelegate(string receiptHTML);
 
         public static void RunService()
         {
             PrintReceiptDelegate PRdel = new PrintReceiptDelegate(Necta.PrintReceipt);
+            LoadHtmlDelegate LHDdel = new LoadHtmlDelegate(Necta.LoadHtmlDocument);
 
             List<Receipt> receipts = null;
 
@@ -92,7 +93,15 @@ namespace Necta.NectaServices
                             continue;
                         }
 
-                        Necta.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });//call PrintReceipt from main thread
+                        //load the html document on the main thread
+                        Necta.MainThreadDispatcher.Invoke(LHDdel, new object[] { receipt.HTML });//call PrintReceipt from main thread
+
+                        //wait for the document to complete loading(done in main thread) 
+                        while (!Necta.mHtmlDocumentIsLoaded)
+                            Thread.Sleep(100);
+
+                        //call PrintReceipt from main thread
+                        Necta.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });
                     }
                     catch (Exception ex)
                     {

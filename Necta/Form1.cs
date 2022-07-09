@@ -5,17 +5,17 @@ using System.Windows.Forms;
 using Necta.API;
 using Necta.NectaServices;
 using System.Windows.Threading;
-using System.Drawing.Printing;
 
 namespace Necta
 {
     public partial class Necta : MaterialForm
     {
-        private static readonly WebBrowser webBrowser = new WebBrowser();
+        public static readonly WebBrowser webBrowser = new WebBrowser();
+        public static bool mHtmlDocumentIsLoaded { get; set; }
 
         //the following dispatcher object will be used to invoke the print method from another thread
         public static Dispatcher MainThreadDispatcher = Dispatcher.CurrentDispatcher;
-       
+
         public Necta()
         {
             InitializeComponent();
@@ -39,6 +39,8 @@ namespace Necta
             {
                 NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
             }
+
+            webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(OnHtmlDocumentIsLoaded);
         }
 
         private void SaveButton_Click(object sender, EventArgs e)
@@ -101,7 +103,6 @@ namespace Necta
         public static void PrintReceipt(Receipt receipt)
         {
             bool defaultPrinterResult = WinPrinter.SetDefaultPrinter(receipt.PrinterName);
-            webBrowser.DocumentText = receipt.HTML;
 
             if (defaultPrinterResult)
             {
@@ -112,6 +113,7 @@ namespace Necta
                 try
                 {
                     webBrowser.Print();
+                    mHtmlDocumentIsLoaded = false;
                 }
                 catch (Exception ex)
                 {
@@ -126,6 +128,17 @@ namespace Necta
             {
                 NectaLogService.WriteLog("Invalid printer name for receipt ID: " + receipt.ID, LogLevels.ERROR);
             }
+        }
+
+        public static void LoadHtmlDocument(string receiptHtml)
+        {
+            webBrowser.DocumentText = receiptHtml;
+        }
+
+        public static void OnHtmlDocumentIsLoaded(object sender, WebBrowserDocumentCompletedEventArgs e)
+        {
+            NectaLogService.WriteLog("HTML document successfully loaded! ", LogLevels.INFO);
+            mHtmlDocumentIsLoaded = true;
         }
 
         private void NectaNotifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
