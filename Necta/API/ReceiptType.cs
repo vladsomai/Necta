@@ -9,11 +9,11 @@
 
     public class Receipt
     {
-        public string ID { get; set; }
+        public string ID { get; set; } //receipt ID
 
-        public string Device { get; set; }
+        public string Device { get; set; } 
 
-        public string Printer { get; set; }
+        public string Printer { get; set; } //Printer ID
 
         public string HTML { get; set; }
 

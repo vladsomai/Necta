@@ -77,7 +77,7 @@ namespace Necta.NectaServices
                         {
                             PrinterError printerError = new PrinterError();
                             printerError.API_GET_URI = API_Handler.API_GET_URI.ToString();
-                            printerError.PrinterID = receipt.ID.ToString();
+                            printerError.PrinterID = receipt.Printer.ToString();
                             printerError.printerInfo = printer;
 
                             if (API_Handler.API_PRINTER_INFO_URI == null)
@@ -94,7 +94,7 @@ namespace Necta.NectaServices
                         }
 
                         //load the html document on the main thread
-                        Necta.MainThreadDispatcher.Invoke(LHDdel, new object[] { receipt.HTML });//call PrintReceipt from main thread
+                        Necta.MainThreadDispatcher.Invoke(LHDdel, new object[] { receipt.HTML });
 
                         //wait for the document to complete loading(done in main thread) 
                         while (!Necta.mHtmlDocumentIsLoaded)
