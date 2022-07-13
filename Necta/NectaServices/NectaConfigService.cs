@@ -22,7 +22,7 @@ namespace Necta.NectaServices
                 file.WriteLine("{");
                 file.WriteLine("    \"API_GET_URI\": \"https://develop.meals.lv/other/printer/?method=queue&key=rest4\",");
                 file.WriteLine("    \"API_UPDATE_URI\": \"https://develop.meals.lv/other/printer/?method=setPrinted&key=rest4\",");
-                file.WriteLine("    \"API_PRINTER_INFO_URI\": \"https://develop.meals.lv/other/printer/?method=queue&key=rest4\",");//TODO: CHANGE THE API LINK
+                file.WriteLine("    \"API_PRINTER_INFO_URI\": \"https://develop.meals.lv/other/printer/?method=printerStatus\", ");
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": 3000");
                 file.WriteLine("}");
             }
