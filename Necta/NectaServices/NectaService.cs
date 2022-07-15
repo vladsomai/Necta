@@ -18,6 +18,9 @@ namespace Necta.NectaServices
 
             while (true)
             {
+                while (Necta.printingInProgress)
+                    Thread.Sleep(500);
+
                 Thread.Sleep(API_Handler.API_REQUEST_INTERVAL);
 
                 if (API_Handler.API_GET_URI == null || API_Handler.API_UPDATE_URI == null)
@@ -46,20 +49,23 @@ namespace Necta.NectaServices
 
                 foreach (Receipt receipt in receipts)
                 {
+                    while (Necta.printingInProgress)
+                        Thread.Sleep(500);
+
                     PrinterInfo printer = null;
                     try
                     {
                         printer = WinPrinter.GetPrinterInfo(receipt.PrinterName);
 
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         NectaLogService.WriteLog("The Printer's info could not be fetched because: ", LogLevels.ERROR);
                         NectaLogService.WriteLog("Invalid printer name for receipt ID: " + receipt.ID, LogLevels.ERROR);
                         NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
                     }
 
-                    try 
+                    try
                     {
                         if (printer == null) continue;
 
@@ -83,7 +89,7 @@ namespace Necta.NectaServices
                                 NectaLogService.WriteLog("Cannot send printer info because PRINTER_INFO_URI is not valid.", LogLevels.ERROR);
                                 continue;
                             }
-                            
+
                             NectaLogService.WriteLog("Printer has an error, please check the printer info below:", LogLevels.ERROR);
                             var options = new JsonSerializerOptions { WriteIndented = true };
                             NectaLogService.WriteLog(JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
@@ -91,8 +97,6 @@ namespace Necta.NectaServices
                             continue;
                         }
 
-                        while (Necta.printingInProgress)
-                            Thread.Sleep(500);
 
                         Necta.printingInProgress = true;
                         //call PrintReceipt from main thread

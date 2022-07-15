@@ -108,8 +108,8 @@ namespace Necta
 
         public static void PrintReceipt(Receipt receipt)
         {
+            NectaLogService.WriteLog("Setting default printer", LogLevels.INFO);
             bool defaultPrinterResult = WinPrinter.SetDefaultPrinter(receipt.PrinterName);
-            
 
             if (defaultPrinterResult)
             {
@@ -161,9 +161,9 @@ namespace Necta
 
         private static async void ChromeConvertHtmlToPdf(string html)
         {
+            BrowserFetcher browserFetcher = new BrowserFetcher();
+            await browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
             {
-                BrowserFetcher browserFetcher = new BrowserFetcher();
-                await browserFetcher.DownloadAsync();
                 string[] args1 = { "--disable-gpu" };
                 Browser browserForConverting = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
@@ -171,21 +171,24 @@ namespace Necta
                     Args = args1,
                 });
 
+                NectaLogService.WriteLog("Starting new page", LogLevels.INFO);
                 using (var page = await browserForConverting.NewPageAsync())
                 {
                     var navigtionOptions = new NavigationOptions();
                     WaitUntilNavigation[] waitUntilNavigations = { WaitUntilNavigation.Load };
                     navigtionOptions.WaitUntil = waitUntilNavigations;
+                    NectaLogService.WriteLog("Setting HTML content on page", LogLevels.INFO);
                     await page.SetContentAsync(html, navigtionOptions);
                     await page.WaitForTimeoutAsync(1000);
+                    NectaLogService.WriteLog("Saving the PDF", LogLevels.INFO);
                     await page.PdfAsync(PathToReceipt);
                 }
                 await browserForConverting.CloseAsync();
             }
 
             AdobePrint();
-
             printingInProgress = false;
+            NectaLogService.WriteLog("Printing done!", LogLevels.INFO);
         }
 
         private static void AdobePrint()
