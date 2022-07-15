@@ -6,7 +6,6 @@ using Necta.API;
 using Necta.NectaServices;
 using System.Windows.Threading;
 using PuppeteerSharp;
-using PdfPrintingNet;
 using System.Diagnostics;
 
 namespace Necta
