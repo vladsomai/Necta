@@ -7,6 +7,7 @@ using Necta.NectaServices;
 using System.Windows.Threading;
 using PuppeteerSharp;
 using PdfPrintingNet;
+using System.Diagnostics;
 
 namespace Necta
 {
@@ -15,9 +16,14 @@ namespace Necta
         //the following dispatcher object will be used to invoke the print method from another thread
         public static Dispatcher MainThreadDispatcher = Dispatcher.CurrentDispatcher;
         public static string PathToReceipt = "C:/Necta/Receipt.pdf";
-        
-        private static BrowserFetcher browserFetcher = new BrowserFetcher();
-        private static Browser browserForConverting = null;
+
+        private static readonly object printingInProgressLock = new object();
+        private static bool _printingInProgress = false;
+        public static bool printingInProgress
+        {
+            get { lock (printingInProgressLock) { return _printingInProgress; } }
+            set { lock (printingInProgressLock) { _printingInProgress = value; } }
+        }
 
         public Necta()
         {
@@ -26,8 +32,6 @@ namespace Necta
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
             materialSkinManager.ColorScheme = new ColorScheme(Primary.Red300, Primary.Red300, Primary.BlueGrey500, Accent.LightBlue200, TextShade.BLACK);
-            
-            browserFetcher.DownloadAsync();
 
             try
             {
@@ -156,40 +160,62 @@ namespace Necta
             }
         }
 
-        private static void PdfPrinting()
-        {
-            var pdfPrint = new PdfPrint("Meals", "demoKey");
-            pdfPrint.Scale = PdfPrint.ScaleTypes.None;
-
-            var status = pdfPrint.Print(PathToReceipt);
-            if (status == PdfPrint.Status.OK)
-            {
-                NectaLogService.WriteLog("Successfully printed the receipt!", LogLevels.INFO);
-            }
-        }
-
         private static async void ChromeConvertHtmlToPdf(string html)
         {
-            string[] args1 = { "--disable-gpu" };
-            browserForConverting = await Puppeteer.LaunchAsync(new LaunchOptions
             {
-                Headless = true,
-                Args = args1,
-            });
+                BrowserFetcher browserFetcher = new BrowserFetcher();
+                await browserFetcher.DownloadAsync();
+                string[] args1 = { "--disable-gpu" };
+                Browser browserForConverting = await Puppeteer.LaunchAsync(new LaunchOptions
+                {
+                    Headless = true,
+                    Args = args1,
+                });
 
-            using (var page = await browserForConverting.NewPageAsync())
-            {
-                var navigtionOptions = new NavigationOptions();
-                WaitUntilNavigation[] waitUntilNavigations = { WaitUntilNavigation.Load, WaitUntilNavigation.Networkidle2 };
-                navigtionOptions.WaitUntil = waitUntilNavigations;
-
-                await page.SetContentAsync(html, navigtionOptions);
-                await page.PdfAsync(PathToReceipt);
-                await page.CloseAsync();
+                using (var page = await browserForConverting.NewPageAsync())
+                {
+                    var navigtionOptions = new NavigationOptions();
+                    WaitUntilNavigation[] waitUntilNavigations = { WaitUntilNavigation.Load };
+                    navigtionOptions.WaitUntil = waitUntilNavigations;
+                    await page.SetContentAsync(html, navigtionOptions);
+                    await page.WaitForTimeoutAsync(1000);
+                    await page.PdfAsync(PathToReceipt);
+                }
+                await browserForConverting.CloseAsync();
             }
-            await browserForConverting.CloseAsync();
 
-            PdfPrinting();
+            AdobePrint();
+
+            printingInProgress = false;
+        }
+
+        private static void AdobePrint()
+        {
+            ProcessStartInfo info = new ProcessStartInfo();
+            info.Verb = "print";
+            info.FileName = PathToReceipt;
+            info.CreateNoWindow = true;
+            info.WindowStyle = ProcessWindowStyle.Hidden;
+
+            Process p = new Process();
+            p.StartInfo = info;
+            p.Start();
+
+            p.WaitForInputIdle();
+
+            var currentTime = DateTime.Now;
+            var elapsedTime = DateTime.Now;
+            elapsedTime.AddSeconds(5);
+            
+            while(true)
+            {
+                if (false == p.CloseMainWindow())
+                    p.Kill();
+
+                currentTime = DateTime.Now;
+                var el = DateTime.Compare(currentTime, elapsedTime);
+                if (el>0) break;
+            }
         }
     }
 }

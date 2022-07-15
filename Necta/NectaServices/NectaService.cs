@@ -91,6 +91,10 @@ namespace Necta.NectaServices
                             continue;
                         }
 
+                        while (Necta.printingInProgress)
+                            Thread.Sleep(500);
+
+                        Necta.printingInProgress = true;
                         //call PrintReceipt from main thread
                         Necta.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });
                     }
