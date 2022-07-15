@@ -10,7 +10,9 @@ namespace Necta.API
 
         public static PrinterInfo GetPrinterInfo(string printerName)
         {
+            printServer.Refresh();
             PrintQueue printQueue = printServer.GetPrintQueue(printerName);
+            printQueue.Refresh();
 
             var JSON_RawPrinterInfo = JsonSerializer.Serialize(printQueue);
 

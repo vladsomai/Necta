@@ -9,12 +9,10 @@ namespace Necta.NectaServices
     class NectaService
     {
         public delegate void PrintReceiptDelegate(Receipt receipt);
-        public delegate void LoadHtmlDelegate(string receiptHTML);
 
         public static void RunService()
         {
             PrintReceiptDelegate PRdel = new PrintReceiptDelegate(Necta.PrintReceipt);
-            LoadHtmlDelegate LHDdel = new LoadHtmlDelegate(Necta.LoadHtmlDocument);
 
             List<Receipt> receipts = null;
 
@@ -92,13 +90,6 @@ namespace Necta.NectaServices
                             API_Handler.SendPrinterErrorInfo(printerError, API_Handler.API_PRINTER_INFO_URI.ToString());
                             continue;
                         }
-
-                        //load the html document on the main thread
-                        Necta.MainThreadDispatcher.Invoke(LHDdel, new object[] { receipt.HTML });
-
-                        //wait for the document to complete loading(done in main thread) 
-                        while (!Necta.mHtmlDocumentIsLoaded)
-                            Thread.Sleep(100);
 
                         //call PrintReceipt from main thread
                         Necta.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });

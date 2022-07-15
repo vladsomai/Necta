@@ -5,16 +5,19 @@ using System.Windows.Forms;
 using Necta.API;
 using Necta.NectaServices;
 using System.Windows.Threading;
+using PuppeteerSharp;
+using PdfPrintingNet;
 
 namespace Necta
 {
     public partial class Necta : MaterialForm
     {
-        public static readonly WebBrowser webBrowser = new WebBrowser();
-        public static bool mHtmlDocumentIsLoaded { get; set; }
-
         //the following dispatcher object will be used to invoke the print method from another thread
         public static Dispatcher MainThreadDispatcher = Dispatcher.CurrentDispatcher;
+        public static string PathToReceipt = "C:/Necta/Receipt.pdf";
+        
+        private static BrowserFetcher browserFetcher = new BrowserFetcher();
+        private static Browser browserForConverting = null;
 
         public Necta()
         {
@@ -23,6 +26,8 @@ namespace Necta
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
             materialSkinManager.ColorScheme = new ColorScheme(Primary.Red300, Primary.Red300, Primary.BlueGrey500, Accent.LightBlue200, TextShade.BLACK);
+            
+            browserFetcher.DownloadAsync();
 
             try
             {
@@ -39,8 +44,6 @@ namespace Necta
             {
                 NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
             }
-
-            webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(OnHtmlDocumentIsLoaded);
         }
 
         private void SaveButton_Click(object sender, EventArgs e)
@@ -103,6 +106,7 @@ namespace Necta
         public static void PrintReceipt(Receipt receipt)
         {
             bool defaultPrinterResult = WinPrinter.SetDefaultPrinter(receipt.PrinterName);
+            
 
             if (defaultPrinterResult)
             {
@@ -112,8 +116,7 @@ namespace Necta
 
                 try
                 {
-                    webBrowser.Print();
-                    mHtmlDocumentIsLoaded = false;
+                    ChromeConvertHtmlToPdf(receipt.HTML);
                 }
                 catch (Exception ex)
                 {
@@ -128,17 +131,6 @@ namespace Necta
             {
                 NectaLogService.WriteLog("Invalid printer name for receipt ID: " + receipt.ID, LogLevels.ERROR);
             }
-        }
-
-        public static void LoadHtmlDocument(string receiptHtml)
-        {
-            webBrowser.DocumentText = receiptHtml;
-        }
-
-        public static void OnHtmlDocumentIsLoaded(object sender, WebBrowserDocumentCompletedEventArgs e)
-        {
-            NectaLogService.WriteLog("HTML document successfully loaded! ", LogLevels.INFO);
-            mHtmlDocumentIsLoaded = true;
         }
 
         private void NectaNotifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -162,6 +154,42 @@ namespace Necta
                 this.WindowState = FormWindowState.Minimized;
                 NectaNotifyIcon1.Visible = true;
             }
+        }
+
+        private static void PdfPrinting()
+        {
+            var pdfPrint = new PdfPrint("Meals", "demoKey");
+            pdfPrint.Scale = PdfPrint.ScaleTypes.None;
+
+            var status = pdfPrint.Print(PathToReceipt);
+            if (status == PdfPrint.Status.OK)
+            {
+                NectaLogService.WriteLog("Successfully printed the receipt!", LogLevels.INFO);
+            }
+        }
+
+        private static async void ChromeConvertHtmlToPdf(string html)
+        {
+            string[] args1 = { "--disable-gpu" };
+            browserForConverting = await Puppeteer.LaunchAsync(new LaunchOptions
+            {
+                Headless = true,
+                Args = args1,
+            });
+
+            using (var page = await browserForConverting.NewPageAsync())
+            {
+                var navigtionOptions = new NavigationOptions();
+                WaitUntilNavigation[] waitUntilNavigations = { WaitUntilNavigation.Load, WaitUntilNavigation.Networkidle2 };
+                navigtionOptions.WaitUntil = waitUntilNavigations;
+
+                await page.SetContentAsync(html, navigtionOptions);
+                await page.PdfAsync(PathToReceipt);
+                await page.CloseAsync();
+            }
+            await browserForConverting.CloseAsync();
+
+            PdfPrinting();
         }
     }
 }
