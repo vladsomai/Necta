@@ -7,6 +7,7 @@ using Necta.NectaServices;
 using System.Windows.Threading;
 using PuppeteerSharp;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Necta
 {
@@ -106,7 +107,7 @@ namespace Necta
             }
         }
 
-        public static void PrintReceipt(Receipt receipt)
+        public static async void PrintReceipt(Receipt receipt)
         {
             NectaLogService.WriteLog("Setting default printer", LogLevels.INFO);
             bool defaultPrinterResult = WinPrinter.SetDefaultPrinter(receipt.PrinterName);
@@ -119,7 +120,8 @@ namespace Necta
 
                 try
                 {
-                    ChromeConvertHtmlToPdf(receipt.HTML);
+                    await ChromeConvertHtmlToPdf(receipt.HTML);
+                    printingInProgress = false;
                 }
                 catch (Exception ex)
                 {
@@ -159,7 +161,7 @@ namespace Necta
             }
         }
 
-        private static async void ChromeConvertHtmlToPdf(string html)
+        private static async Task<int> ChromeConvertHtmlToPdf(string html)
         {
             BrowserFetcher browserFetcher = new BrowserFetcher();
             await browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
@@ -186,12 +188,13 @@ namespace Necta
                 await browserForConverting.CloseAsync();
             }
 
-            AdobePrint();
-            printingInProgress = false;
+            ProcessPrint();
             NectaLogService.WriteLog("Printing done!", LogLevels.INFO);
+
+            return 0;
         }
 
-        private static void AdobePrint()
+        private static void ProcessPrint()
         {
             ProcessStartInfo info = new ProcessStartInfo();
             info.Verb = "print";
@@ -204,20 +207,6 @@ namespace Necta
             p.Start();
 
             p.WaitForInputIdle();
-
-            var currentTime = DateTime.Now;
-            var elapsedTime = DateTime.Now;
-            elapsedTime.AddSeconds(5);
-            
-            while(true)
-            {
-                if (false == p.CloseMainWindow())
-                    p.Kill();
-
-                currentTime = DateTime.Now;
-                var el = DateTime.Compare(currentTime, elapsedTime);
-                if (el>0) break;
-            }
         }
     }
 }
