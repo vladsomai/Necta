@@ -15,7 +15,9 @@ namespace Necta
     {
         //the following dispatcher object will be used to invoke the print method from another thread
         public static Dispatcher MainThreadDispatcher = Dispatcher.CurrentDispatcher;
-        public static string PathToReceipt = "C:/Necta/Receipt.pdf";
+        public static string PathToReceipt = @"C:\Necta\Receipt.pdf";
+        public static string PathToChrome = "";
+        private static Browser browserForConverting = null;
 
         private static readonly object printingInProgressLock = new object();
         private static bool _printingInProgress = false;
@@ -63,6 +65,7 @@ namespace Necta
             ApiUpdateUri_textBox.Text = config.API_UPDATE_URI;
             ApiPrinterInfoUri_textBox.Text = config.API_PRINTER_INFO_URI;
             ApiRequestInterval_value.Value = config.API_REQUEST_INTERVAL;
+            PathToChrome = config.CHROME_PATH + "chrome.exe";
         }
 
         private void SaveAndValidateURI(bool isFirstPaint = false)
@@ -127,6 +130,15 @@ namespace Necta
                 {
                     NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
                     NectaLogService.WriteLog(ex.InnerException?.Message, LogLevels.ERROR);
+
+                    if (browserForConverting != null)
+                        await browserForConverting.CloseAsync();
+
+                    if (ex.Message == "Failed to launch browser! path to executable does not exist")
+                    {
+                        NectaLogService.WriteLog("You must stop Necta.exe and add the corect path to the chrome executable in C:/Necta/Config/Config.json!", LogLevels.ERROR);
+                    }
+                    printingInProgress = false;
                     return;
                 }
 
@@ -163,13 +175,12 @@ namespace Necta
 
         private static async Task<int> ChromeConvertHtmlToPdf(string html)
         {
-            BrowserFetcher browserFetcher = new BrowserFetcher();
-            await browserFetcher.DownloadAsync(BrowserFetcher.DefaultChromiumRevision);
             {
                 string[] args1 = { "--disable-gpu" };
-                Browser browserForConverting = await Puppeteer.LaunchAsync(new LaunchOptions
+                browserForConverting = await Puppeteer.LaunchAsync(new LaunchOptions
                 {
                     Headless = true,
+                    ExecutablePath = PathToChrome,
                     Args = args1,
                 });
 

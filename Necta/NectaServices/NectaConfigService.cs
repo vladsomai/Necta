@@ -23,6 +23,7 @@ namespace Necta.NectaServices
                 file.WriteLine("    \"API_GET_URI\": \"https://develop.meals.lv/other/printer/?method=queue&key=rest4\",");
                 file.WriteLine("    \"API_UPDATE_URI\": \"https://develop.meals.lv/other/printer/?method=setPrinted&key=rest4\",");
                 file.WriteLine("    \"API_PRINTER_INFO_URI\": \"https://develop.meals.lv/other/printer/?method=printerStatus\", ");
+                file.WriteLine("    \"CHROME_PATH\": \"C:/Program Files/Google/Chrome/Application/\", ");
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": 3000");
                 file.WriteLine("}");
             }
@@ -46,12 +47,15 @@ namespace Necta.NectaServices
             if (!Directory.Exists(nectaConfigPath))
                 Directory.CreateDirectory(nectaConfigPath);
 
+            var currentConfig = ReadConfig();
+
             using (StreamWriter file = new StreamWriter(nectaConfigFile))
             {
                 file.WriteLine("{");
                 file.WriteLine("    \"API_GET_URI\": \"{0}\",", API_Handler.API_GET_URI);
                 file.WriteLine("    \"API_UPDATE_URI\": \"{0}\",", API_Handler.API_UPDATE_URI);
                 file.WriteLine("    \"API_PRINTER_INFO_URI\": \"{0}\",",API_Handler.API_PRINTER_INFO_URI);
+                file.WriteLine("    \"CHROME_PATH\": \"{0}\",", currentConfig.CHROME_PATH);
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": {0}", API_Handler.API_REQUEST_INTERVAL);
                 file.WriteLine("}");
             }
@@ -63,6 +67,7 @@ namespace Necta.NectaServices
         public string API_GET_URI { get; set; }
         public string API_UPDATE_URI { get; set; }
         public string API_PRINTER_INFO_URI { get; set; }
+        public string CHROME_PATH { get; set; }
         public int API_REQUEST_INTERVAL { get; set; }
     }
 }
