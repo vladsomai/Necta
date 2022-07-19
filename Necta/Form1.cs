@@ -194,7 +194,7 @@ namespace Necta
                     await page.SetContentAsync(html, navigtionOptions);
                     await page.WaitForTimeoutAsync(1000);
                     NectaLogService.WriteLog("Saving the PDF", LogLevels.INFO);
-                    await page.PdfAsync(PathToReceipt);
+                    await page.PdfAsync(PathToReceipt, new PdfOptions() { PrintBackground = true, OmitBackground=false});
                 }
                 await browserForConverting.CloseAsync();
             }

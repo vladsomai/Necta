@@ -69,20 +69,12 @@ namespace Necta.NectaServices
                     {
                         if (printer == null) continue;
 
-                        if (printer.HasPaperProblem ||
-                        !printer.HasToner ||
-                        printer.IsInError ||
-                        printer.IsNotAvailable ||
-                        printer.IsOffline ||
-                        printer.IsOutOfPaper ||
-                        printer.IsPaperJammed ||
-                        printer.IsTonerLow ||
-                        printer.NeedUserIntervention)
+                        if (printer.QueueStatus != System.Printing.PrintQueueStatus.None)
                         {
                             PrinterError printerError = new PrinterError();
                             printerError.API_GET_URI = API_Handler.API_GET_URI.ToString();
                             printerError.PrinterID = receipt.Printer.ToString();
-                            printerError.printerInfo = printer;
+                            printerError.printerInfo = printer.QueueStatus.ToString();
 
                             if (API_Handler.API_PRINTER_INFO_URI == null)
                             {

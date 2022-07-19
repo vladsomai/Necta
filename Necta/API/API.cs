@@ -103,6 +103,6 @@ namespace Necta.API
     {
         public string API_GET_URI { get; set; }
         public string PrinterID { get; set; }
-        public PrinterInfo printerInfo {get; set;}
+        public string printerInfo {get; set;}
     }
 }
