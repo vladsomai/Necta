@@ -146,11 +146,11 @@
   <ItemGroup>
     <Compile Include="API\ReceiptType.cs" />
     <Compile Include="API\WinPrinter.cs" />
-    <Compile Include="Form1.cs">
+    <Compile Include="NectaApp.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="NectaApp.Designer.cs">
+      <DependentUpon>NectaApp.cs</DependentUpon>
     </Compile>
     <Compile Include="API\API.cs" />
     <Compile Include="PasswordModal.cs">
@@ -164,8 +164,8 @@
     <Compile Include="NectaServices\NectaService.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <EmbeddedResource Include="NectaApp.resx">
+      <DependentUpon>NectaApp.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="PasswordModal.resx">
       <DependentUpon>PasswordModal.cs</DependentUpon>

@@ -12,7 +12,7 @@ using System.Threading;
 
 namespace Necta
 {
-    public partial class Necta : MaterialForm
+    public partial class NectaApp : MaterialForm
     {
         //the following dispatcher object will be used to invoke the print method from another thread
         public static Dispatcher MainThreadDispatcher = Dispatcher.CurrentDispatcher;
@@ -28,7 +28,7 @@ namespace Necta
             set { lock (printingInProgressLock) { _printingInProgress = value; } }
         }
 
-        public Necta()
+        public NectaApp()
         {
             InitializeComponent();
             var materialSkinManager = MaterialSkinManager.Instance;
@@ -53,6 +53,7 @@ namespace Necta
                 NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
             }
 
+            SetTextboxesToVisible(false);
             CheckPassword();
         }
 
@@ -196,7 +197,7 @@ namespace Necta
                     await page.SetContentAsync(html, navigtionOptions);
                     await page.WaitForTimeoutAsync(1000);
                     NectaLogService.WriteLog("Saving the PDF", LogLevels.INFO);
-                    await page.PdfAsync(PathToReceipt, new PdfOptions() { PrintBackground = true, OmitBackground=false});
+                    await page.PdfAsync(PathToReceipt, new PdfOptions() { PrintBackground = true, OmitBackground = false });
                 }
                 await browserForConverting.CloseAsync();
             }
@@ -224,6 +225,7 @@ namespace Necta
 
         private void CheckPassword()
         {
+            this.Visible = false;
             PasswordModal.mInstance.showPasswordFrom();
         }
 
@@ -239,6 +241,20 @@ namespace Necta
             Show();
             this.WindowState = FormWindowState.Normal;
             NectaNotifyIcon1.Visible = false;
+        }
+        
+        public void SetTextboxesToVisible(bool what)
+        {
+            ApiGetUri_textBox.Visible = what;
+            ApiGetUri_lable.Visible = what;
+            ApiUpdateUri_textBox.Visible = what;
+            ApiUpdateUri_label.Visible = what;
+            ApiPrinterInfoUri_textBox.Visible = what;
+            ApiPrinterInfoUri_label.Visible = what;
+            ApiRequestInterval_value.Visible = what;
+            RequestIntervalTime_label.Visible = what;
+            RequestInterval_label.Visible = what;
+            SaveButton.Visible = what;
         }
     }
 }

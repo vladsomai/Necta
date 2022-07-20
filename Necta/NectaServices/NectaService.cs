@@ -12,13 +12,13 @@ namespace Necta.NectaServices
 
         public static void RunService()
         {
-            PrintReceiptDelegate PRdel = new PrintReceiptDelegate(Necta.PrintReceipt);
+            PrintReceiptDelegate PRdel = new PrintReceiptDelegate(NectaApp.PrintReceipt);
 
             List<Receipt> receipts = null;
 
             while (true)
             {
-                while (Necta.printingInProgress)
+                while (NectaApp.printingInProgress)
                     Thread.Sleep(500);
 
                 Thread.Sleep(API_Handler.API_REQUEST_INTERVAL);
@@ -49,7 +49,7 @@ namespace Necta.NectaServices
 
                 foreach (Receipt receipt in receipts)
                 {
-                    while (Necta.printingInProgress)
+                    while (NectaApp.printingInProgress)
                         Thread.Sleep(500);
 
                     PrinterInfo printer = null;
@@ -90,9 +90,9 @@ namespace Necta.NectaServices
                         }
 
 
-                        Necta.printingInProgress = true;
+                        NectaApp.printingInProgress = true;
                         //call PrintReceipt from main thread
-                        Necta.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });
+                        NectaApp.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });
                     }
                     catch (Exception ex)
                     {

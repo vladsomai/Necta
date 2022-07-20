@@ -16,15 +16,15 @@ namespace Necta
     public partial class PasswordModal : MaterialForm
     {
         public static PasswordModal mInstance = null;
-        private Necta MainInstance = null;
+        private NectaApp MainInstance = null;
         private static bool passwordOK = false;
 
-        public static void CreatePasswordModal(Necta instance)
+        public static void CreatePasswordModal(NectaApp instance)
         {
-            if(mInstance==null)
+            if (mInstance == null)
                 mInstance = new PasswordModal(instance);
         }
-        private PasswordModal(Necta instance)
+        private PasswordModal(NectaApp instance)
         {
             MainInstance = instance;
 
@@ -33,7 +33,6 @@ namespace Necta
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
             materialSkinManager.ColorScheme = new ColorScheme(Primary.Red300, Primary.Red300, Primary.BlueGrey500, Accent.LightBlue200, TextShade.BLACK);
-            instance.hideMainForm();
         }
 
         private void PasswordButton_Click(object sender, EventArgs e)
@@ -45,6 +44,7 @@ namespace Necta
             {
                 passwordOK = true;
                 hidePasswordForm();
+                MainInstance.SetTextboxesToVisible(true);
                 MainInstance.showMainFrom();
             }
             else
@@ -53,8 +53,8 @@ namespace Necta
 
         private void PasswordForm_Closing(object e, FormClosingEventArgs ev)
         {
-            if(!passwordOK)
-            Application.Exit();
+            if (!passwordOK)
+                Application.Exit();
         }
 
         private void hidePasswordForm()
@@ -65,6 +65,7 @@ namespace Necta
 
         public void showPasswordFrom()
         {
+            MainInstance.hideMainForm();
             PasswordTextbox.Text = "";
             passwordOK = false;
             Show();

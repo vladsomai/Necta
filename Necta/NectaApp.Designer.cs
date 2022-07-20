@@ -2,7 +2,7 @@
 
 namespace Necta
 {
-    partial class Necta
+    partial class NectaApp
     {
         /// <summary>
         /// Required designer variable.
@@ -34,7 +34,7 @@ namespace Necta
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Necta));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(NectaApp));
             this.Print = new System.Windows.Forms.Button();
             this.ApiGetUri_lable = new System.Windows.Forms.Label();
             this.RequestInterval_label = new System.Windows.Forms.Label();
