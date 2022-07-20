@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using PuppeteerSharp;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Necta
 {
@@ -37,6 +38,7 @@ namespace Necta
 
             try
             {
+                PasswordModal.CreatePasswordModal(this);
                 NectaConfigService.Initialize();
                 SetDataFromConfig();
                 SaveAndValidateURI(true);
@@ -50,6 +52,8 @@ namespace Necta
             {
                 NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
             }
+
+            CheckPassword();
         }
 
         private void SaveButton_Click(object sender, EventArgs e)
@@ -59,7 +63,7 @@ namespace Necta
 
         private void SetDataFromConfig()
         {
-            ConfigType config = NectaConfigService.ReadConfig();
+            ConfigType config = ConfigContent<ConfigType>.ReadConfig(NectaConfigService.nectaConfigFile);
 
             ApiGetUri_textBox.Text = config.API_GET_URI;
             ApiUpdateUri_textBox.Text = config.API_UPDATE_URI;
@@ -152,9 +156,7 @@ namespace Necta
 
         private void NectaNotifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            Show();
-            this.WindowState = FormWindowState.Normal;
-            NectaNotifyIcon1.Visible = false;
+            CheckPassword();
         }
 
         private void onResize(object sender, EventArgs e)
@@ -218,6 +220,25 @@ namespace Necta
             p.Start();
 
             p.WaitForInputIdle();
+        }
+
+        private void CheckPassword()
+        {
+            PasswordModal.mInstance.showPasswordFrom();
+        }
+
+        public void hideMainForm()
+        {
+            Hide();
+            this.WindowState = FormWindowState.Minimized;
+            NectaNotifyIcon1.Visible = false;
+        }
+
+        public void showMainFrom()
+        {
+            Show();
+            this.WindowState = FormWindowState.Normal;
+            NectaNotifyIcon1.Visible = false;
         }
     }
 }

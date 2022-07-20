@@ -234,6 +234,7 @@ namespace Necta
             this.MaximizeBox = false;
             this.Name = "Necta";
             this.Sizable = false;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Resize += new System.EventHandler(this.onResize);
             ((System.ComponentModel.ISupportInitialize)(this.ApiRequestInterval_value)).EndInit();
             this.ResumeLayout(false);

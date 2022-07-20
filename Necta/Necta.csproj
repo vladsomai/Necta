@@ -153,6 +153,12 @@
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
     <Compile Include="API\API.cs" />
+    <Compile Include="PasswordModal.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PasswordModal.Designer.cs">
+      <DependentUpon>PasswordModal.cs</DependentUpon>
+    </Compile>
     <Compile Include="NectaServices\NectaConfigService.cs" />
     <Compile Include="NectaServices\NectaLogService.cs" />
     <Compile Include="NectaServices\NectaService.cs" />
@@ -160,6 +166,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PasswordModal.resx">
+      <DependentUpon>PasswordModal.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

@@ -1,23 +1,29 @@
 ﻿using Necta.API;
+using System;
+using System.Globalization;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace Necta.NectaServices
 {
     class NectaConfigService
     {
-        private const string nectaConfigFile = @"C:\Necta\Config\Config.json";
         private const string nectaConfigPath = @"C:\Necta\Config\";
+        public const string nectaConfigFile = @"C:\Necta\Config\Config.json";
+        public const string nectaPasswordFile = @"C:\Necta\Config\Password.json";
+        private const string defaultPassword = "meals";
 
         public static void Initialize()
         {
             if (!Directory.Exists(nectaConfigPath))
                 Directory.CreateDirectory(nectaConfigPath);
 
-            if (File.Exists(nectaConfigFile))
+            if (File.Exists(nectaConfigFile) && File.Exists(nectaPasswordFile))
                 return;
 
-            using (StreamWriter file = new StreamWriter(nectaConfigFile, append: true))
+            using (StreamWriter file = new StreamWriter(nectaConfigFile))
             {
                 file.WriteLine("{");
                 file.WriteLine("    \"API_GET_URI\": \"https://develop.meals.lv/other/printer/?method=queue&key=rest4\",");
@@ -27,27 +33,21 @@ namespace Necta.NectaServices
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": 3000");
                 file.WriteLine("}");
             }
-        }
-        public static ConfigType ReadConfig()
-        {
-            string configContent = "";
 
-            using (StreamReader configFile = new StreamReader(nectaConfigFile))
+            using (StreamWriter file = new StreamWriter(nectaPasswordFile))
             {
-                configContent = configFile.ReadToEnd();
+                file.WriteLine("{");
+                file.WriteLine("    \"Password\": \"{0}\"", Hasher.GetSha256Hash(defaultPassword));
+                file.WriteLine("}");
             }
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var config = JsonSerializer.Deserialize<ConfigType>(configContent, options);
-
-            return config;
+            File.SetAttributes(nectaPasswordFile, FileAttributes.Hidden);
         }
         public static void SaveNewConfig()
         {
             if (!Directory.Exists(nectaConfigPath))
                 Directory.CreateDirectory(nectaConfigPath);
 
-            var currentConfig = ReadConfig();
+            var currentConfig = ConfigContent<ConfigType>.ReadConfig(nectaConfigFile);
 
             using (StreamWriter file = new StreamWriter(nectaConfigFile))
             {
@@ -62,6 +62,44 @@ namespace Necta.NectaServices
         }
     }
 
+    //generic class that will read any json document and return the c# object 
+    class ConfigContent<T>
+    {
+        public static T ReadConfig(string pathToFile)
+        {
+            string configContent = "";
+
+            using (StreamReader configFile = new StreamReader(pathToFile))
+            {
+                configContent = configFile.ReadToEnd();
+            }
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var config = JsonSerializer.Deserialize<T>(configContent, options);
+
+            return config;
+        }
+    }
+
+    public static class Hasher
+    {
+        public static string GetSha256Hash(string value)
+        {
+            StringBuilder Sb = new StringBuilder();
+
+            using (SHA256 hash = SHA256.Create())
+            {
+                Encoding enc = Encoding.UTF8;
+                byte[] result = hash.ComputeHash(enc.GetBytes(value));
+
+                foreach (byte b in result)
+                    Sb.Append(b.ToString("x2", CultureInfo.InvariantCulture));
+            }
+
+            return Sb.ToString();
+        }
+    }
+
     class ConfigType
     {
         public string API_GET_URI { get; set; }
@@ -69,5 +107,10 @@ namespace Necta.NectaServices
         public string API_PRINTER_INFO_URI { get; set; }
         public string CHROME_PATH { get; set; }
         public int API_REQUEST_INTERVAL { get; set; }
+    }
+
+    class PasswordType
+    {
+        public string Password { get; set; }
     }
 }

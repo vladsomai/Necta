@@ -19,7 +19,6 @@ namespace Necta
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Necta());
-
         }
     }
 }
