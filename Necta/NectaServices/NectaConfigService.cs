@@ -39,7 +39,7 @@ namespace Necta.NectaServices
                 file.WriteLine("    \"API_UPDATE_URI\": \"https://develop.meals.lv/other/printer/?method=setPrinted&key=rest4\",");
                 file.WriteLine("    \"API_PRINTER_INFO_URI\": \"https://develop.meals.lv/other/printer/?method=printerStatus\",");
                 file.WriteLine("    \"CHROME_PATH\": \"C:/Program Files/Google/Chrome/Application/\",");
-                file.WriteLine("    \"LOG_FILE_SIZE\": 50000,");
+                file.WriteLine("    \"LOG_FILE_SIZE\": 500000,");
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": 3000");
                 file.WriteLine("}");
             }

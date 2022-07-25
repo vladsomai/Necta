@@ -41,14 +41,15 @@ namespace Necta
             this.RequestIntervalTime_label = new System.Windows.Forms.Label();
             this.ApiRequestInterval_value = new System.Windows.Forms.NumericUpDown();
             this.ApiUpdateUri_label = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
             this.SaveButton = new MaterialSkin.Controls.MaterialFlatButton();
             this.ApiGetUri_textBox = new MaterialSkin.Controls.MaterialSingleLineTextField();
             this.ApiUpdateUri_textBox = new MaterialSkin.Controls.MaterialSingleLineTextField();
             this.NectaNotifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.ApiPrinterInfoUri_textBox = new MaterialSkin.Controls.MaterialSingleLineTextField();
             this.ApiPrinterInfoUri_label = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.ApiRequestInterval_value)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // Print
@@ -120,17 +121,6 @@ namespace Necta
             this.ApiUpdateUri_label.Size = new System.Drawing.Size(142, 18);
             this.ApiUpdateUri_label.TabIndex = 8;
             this.ApiUpdateUri_label.Text = "API UPDATE URI";
-            // 
-            // label1
-            // 
-            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Top;
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Pacifico", 36F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(457, 64);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(153, 93);
-            this.label1.TabIndex = 10;
-            this.label1.Text = "meals";
             // 
             // SaveButton
             // 
@@ -211,17 +201,26 @@ namespace Necta
             this.ApiPrinterInfoUri_label.TabIndex = 14;
             this.ApiPrinterInfoUri_label.Text = "API PRINTER INFO URI";
             // 
-            // Necta
+            // pictureBox1
+            // 
+            this.pictureBox1.Image = global::Necta.Properties.Resources.Meals_logo_pic;
+            this.pictureBox1.Location = new System.Drawing.Point(471, 75);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(133, 63);
+            this.pictureBox1.TabIndex = 16;
+            this.pictureBox1.TabStop = false;
+            // 
+            // NectaApp
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1029, 514);
+            this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.ApiPrinterInfoUri_textBox);
             this.Controls.Add(this.ApiPrinterInfoUri_label);
             this.Controls.Add(this.ApiUpdateUri_textBox);
             this.Controls.Add(this.ApiGetUri_textBox);
             this.Controls.Add(this.SaveButton);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.ApiUpdateUri_label);
             this.Controls.Add(this.ApiRequestInterval_value);
             this.Controls.Add(this.RequestIntervalTime_label);
@@ -232,11 +231,12 @@ namespace Necta
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
-            this.Name = "Necta";
+            this.Name = "NectaApp";
             this.Sizable = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Resize += new System.EventHandler(this.onResize);
             ((System.ComponentModel.ISupportInitialize)(this.ApiRequestInterval_value)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -250,13 +250,13 @@ namespace Necta
         private Label RequestIntervalTime_label;
         private NumericUpDown ApiRequestInterval_value;
         private Label ApiUpdateUri_label;
-        private Label label1;
         private MaterialSkin.Controls.MaterialFlatButton SaveButton;
         private MaterialSkin.Controls.MaterialSingleLineTextField ApiGetUri_textBox;
         private MaterialSkin.Controls.MaterialSingleLineTextField ApiUpdateUri_textBox;
         private NotifyIcon NectaNotifyIcon1;
         private MaterialSkin.Controls.MaterialSingleLineTextField ApiPrinterInfoUri_textBox;
         private Label ApiPrinterInfoUri_label;
+        private PictureBox pictureBox1;
     }
 }
 
