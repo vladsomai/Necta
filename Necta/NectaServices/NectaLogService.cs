@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 
 namespace Necta.NectaServices
 {
@@ -8,7 +9,6 @@ namespace Necta.NectaServices
         private static NectaLogService serviceInstance { get; set; }
         private static string currentLogFile = null;
         private static readonly object lockFile = new object();
-
         private const string nectaLogPath = @"C:\Necta\Logs\";
 
         private NectaLogService()
@@ -35,6 +35,27 @@ namespace Necta.NectaServices
         {
             if (serviceInstance == null)
                 serviceInstance = new NectaLogService();
+
+            while(true)
+            {
+                Thread.Sleep(10000);
+
+                var config = ConfigContent<ConfigType>.ReadConfig(NectaConfigService.nectaConfigFile);
+
+                lock (lockFile)
+                {
+                    string[] logFileContent = File.ReadAllLines(currentLogFile);
+
+                    if (logFileContent.Length > config.LOG_FILE_SIZE)
+                    {
+                        var logFileContentAfterDeletion = new string[config.LOG_FILE_SIZE];
+                        Array.Copy(logFileContent, logFileContent.Length - config.LOG_FILE_SIZE , logFileContentAfterDeletion, 0, config.LOG_FILE_SIZE);
+
+                        File.WriteAllLines(currentLogFile, logFileContentAfterDeletion);
+                    }
+                }
+
+            }
         }
 
         public static void WriteLog(string log, string logLevel)

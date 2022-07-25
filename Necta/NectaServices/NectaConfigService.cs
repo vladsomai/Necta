@@ -15,6 +15,15 @@ namespace Necta.NectaServices
         public const string nectaPasswordFile = @"C:\Necta\Config\Password.json";
         private const string defaultPassword = "meals";
 
+        private static readonly object LogFileSize_lock = new object();
+
+        private static int _LogFileSize=50000;
+        public static int LogFileSize
+        {
+            get { lock (LogFileSize_lock) { return _LogFileSize; } }
+            set { lock (LogFileSize_lock) { _LogFileSize = value; } }
+        }
+
         public static void Initialize()
         {
             if (!Directory.Exists(nectaConfigPath))
@@ -28,8 +37,9 @@ namespace Necta.NectaServices
                 file.WriteLine("{");
                 file.WriteLine("    \"API_GET_URI\": \"https://develop.meals.lv/other/printer/?method=queue&key=rest4\",");
                 file.WriteLine("    \"API_UPDATE_URI\": \"https://develop.meals.lv/other/printer/?method=setPrinted&key=rest4\",");
-                file.WriteLine("    \"API_PRINTER_INFO_URI\": \"https://develop.meals.lv/other/printer/?method=printerStatus\", ");
-                file.WriteLine("    \"CHROME_PATH\": \"C:/Program Files/Google/Chrome/Application/\", ");
+                file.WriteLine("    \"API_PRINTER_INFO_URI\": \"https://develop.meals.lv/other/printer/?method=printerStatus\",");
+                file.WriteLine("    \"CHROME_PATH\": \"C:/Program Files/Google/Chrome/Application/\",");
+                file.WriteLine("    \"LOG_FILE_SIZE\": 50000,");
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": 3000");
                 file.WriteLine("}");
             }
@@ -56,6 +66,7 @@ namespace Necta.NectaServices
                 file.WriteLine("    \"API_UPDATE_URI\": \"{0}\",", API_Handler.API_UPDATE_URI);
                 file.WriteLine("    \"API_PRINTER_INFO_URI\": \"{0}\",",API_Handler.API_PRINTER_INFO_URI);
                 file.WriteLine("    \"CHROME_PATH\": \"{0}\",", currentConfig.CHROME_PATH);
+                file.WriteLine("    \"LOG_FILE_SIZE\": {0},", currentConfig.LOG_FILE_SIZE);
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": {0}", API_Handler.API_REQUEST_INTERVAL);
                 file.WriteLine("}");
             }
@@ -106,6 +117,7 @@ namespace Necta.NectaServices
         public string API_UPDATE_URI { get; set; }
         public string API_PRINTER_INFO_URI { get; set; }
         public string CHROME_PATH { get; set; }
+        public int LOG_FILE_SIZE { get; set; }
         public int API_REQUEST_INTERVAL { get; set; }
     }
 
