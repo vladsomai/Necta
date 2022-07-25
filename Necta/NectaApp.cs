@@ -8,7 +8,6 @@ using System.Windows.Threading;
 using PuppeteerSharp;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using System.Threading;
 
 namespace Necta
 {
@@ -129,7 +128,6 @@ namespace Necta
                 try
                 {
                     await ChromeConvertHtmlToPdf(receipt.HTML);
-                    printingInProgress = false;
                 }
                 catch (Exception ex)
                 {
@@ -148,6 +146,8 @@ namespace Necta
                 }
 
                 API_Handler.UpdateReceipt(receipt.ID, API_Handler.API_UPDATE_URI.ToString());
+                NectaLogService.WriteLog("Printing done!", LogLevels.INFO);
+                printingInProgress = false;
             }
             else
             {
@@ -208,7 +208,6 @@ namespace Necta
             }
 
             ProcessPrint();
-            NectaLogService.WriteLog("Printing done!", LogLevels.INFO);
 
             return 0;
         }

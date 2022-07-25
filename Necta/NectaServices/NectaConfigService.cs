@@ -64,7 +64,7 @@ namespace Necta.NectaServices
                 file.WriteLine("{");
                 file.WriteLine("    \"API_GET_URI\": \"{0}\",", API_Handler.API_GET_URI);
                 file.WriteLine("    \"API_UPDATE_URI\": \"{0}\",", API_Handler.API_UPDATE_URI);
-                file.WriteLine("    \"API_PRINTER_INFO_URI\": \"{0}\",",API_Handler.API_PRINTER_INFO_URI);
+                file.WriteLine("    \"API_PRINTER_INFO_URI\": \"{0}\",", API_Handler.API_PRINTER_INFO_URI);
                 file.WriteLine("    \"CHROME_PATH\": \"{0}\",", currentConfig.CHROME_PATH);
                 file.WriteLine("    \"LOG_FILE_SIZE\": {0},", currentConfig.LOG_FILE_SIZE);
                 file.WriteLine("    \"API_REQUEST_INTERVAL\": {0}", API_Handler.API_REQUEST_INTERVAL);
@@ -76,19 +76,24 @@ namespace Necta.NectaServices
     //generic class that will read any json document and return the c# object 
     class ConfigContent<T>
     {
+        private static readonly object ConfigFile_lock = new object();
+
         public static T ReadConfig(string pathToFile)
         {
-            string configContent = "";
-
-            using (StreamReader configFile = new StreamReader(pathToFile))
+            lock (ConfigFile_lock)
             {
-                configContent = configFile.ReadToEnd();
+                string configContent = "";
+
+                using (StreamReader configFile = new StreamReader(pathToFile))
+                {
+                    configContent = configFile.ReadToEnd();
+                }
+
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var config = JsonSerializer.Deserialize<T>(configContent, options);
+
+                return config;
             }
-
-            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-            var config = JsonSerializer.Deserialize<T>(configContent, options);
-
-            return config;
         }
     }
 

@@ -9,8 +9,6 @@ namespace Necta.NectaServices
     class NectaService
     {
         public delegate void PrintReceiptDelegate(Receipt receipt);
-        private static DateTime timeWhenPrintingShouldTimeout = DateTime.Now;
-        private static DateTime currentTime = DateTime.Now;
 
         public static void RunService()
         {
@@ -20,6 +18,9 @@ namespace Necta.NectaServices
 
             while (true)
             {
+                while (NectaApp.printingInProgress)
+                    Thread.Sleep(500);
+
                 Thread.Sleep(API_Handler.API_REQUEST_INTERVAL);
 
                 if (API_Handler.API_GET_URI == null || API_Handler.API_UPDATE_URI == null)
@@ -51,76 +52,62 @@ namespace Necta.NectaServices
                     while (NectaApp.printingInProgress)
                         Thread.Sleep(500);
 
-                    PrinterInfo printer = null;
                     try
                     {
-                        printer = WinPrinter.GetPrinterInfo(receipt.PrinterName);
-                    }
-                    catch (Exception ex)
-                    {
-                        NectaLogService.WriteLog("The Printer's info could not be fetched because: ", LogLevels.ERROR);
-                        NectaLogService.WriteLog("Invalid printer name for receipt ID: " + receipt.ID, LogLevels.ERROR);
-                        NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
-                    }
-
-                    try
-                    {
-                        if (printer == null) continue;
-
-                        if (printer.QueueStatus != System.Printing.PrintQueueStatus.None)
+                        bool printerIsInError = true;
+                        while (printerIsInError)
                         {
-                            PrinterError printerError = new PrinterError();
-                            printerError.API_GET_URI = API_Handler.API_GET_URI.ToString();
-                            printerError.PrinterID = receipt.Printer.ToString();
-                            printerError.printerInfo = printer.QueueStatus.ToString();
-
-                            if (API_Handler.API_PRINTER_INFO_URI == null)
+                            PrinterInfo printer = null;
+                            try
                             {
-                                NectaLogService.WriteLog("Cannot send printer info because PRINTER_INFO_URI is not valid.", LogLevels.ERROR);
-                                continue;
+                                printer = WinPrinter.GetPrinterInfo(receipt.PrinterName);
+                            }
+                            catch (Exception ex)
+                            {
+                                NectaLogService.WriteLog("The Printer's info could not be fetched because: ", LogLevels.ERROR);
+                                NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
+                                NectaLogService.WriteLog("The Printer's info must be fetched before sending a printing command, please solve the issue.", LogLevels.ERROR);
                             }
 
-                            NectaLogService.WriteLog("Printer has an error, please check the printer info below:", LogLevels.ERROR);
-                            var options = new JsonSerializerOptions { WriteIndented = true };
-                            NectaLogService.WriteLog(JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
-                            API_Handler.SendPrinterErrorInfo(printerError, API_Handler.API_PRINTER_INFO_URI.ToString());
-                            continue;
-                        }
+                            if (printer == null)
+                            {
+                                printer = new PrinterInfo()
+                                {
+                                    QueueStatus = System.Printing.PrintQueueStatus.Error
+                                };
+                            }
 
-                        NectaApp.printingInProgress = true;
-                        currentTime = DateTime.Now;
-                        timeWhenPrintingShouldTimeout = DateTime.Now.AddSeconds(2);
-
-                        //call PrintReceipt from main thread
-                        NectaApp.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });
-
-                        while (NectaApp.printingInProgress)
-                        {
-                            //for printing timout -> this can occur when Win32 api does not receive an error status from printer
-                            currentTime = DateTime.Now;
-
-                            if (currentTime > timeWhenPrintingShouldTimeout)
+                            if (printer.QueueStatus != System.Printing.PrintQueueStatus.None)
                             {
                                 PrinterError printerError = new PrinterError();
                                 printerError.API_GET_URI = API_Handler.API_GET_URI.ToString();
                                 printerError.PrinterID = receipt.Printer.ToString();
-                                printerError.printerInfo = "printingError";
+                                printerError.printerInfo = printer.QueueStatus.ToString();
 
                                 if (API_Handler.API_PRINTER_INFO_URI == null)
                                 {
                                     NectaLogService.WriteLog("Cannot send printer info because PRINTER_INFO_URI is not valid.", LogLevels.ERROR);
-                                    break;
+                                }
+                                else
+                                {
+                                    NectaLogService.WriteLog("Printer has an error, please check the printer info below:", LogLevels.ERROR);
+                                    var options = new JsonSerializerOptions { WriteIndented = true };
+                                    NectaLogService.WriteLog(JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
+                                    API_Handler.SendPrinterErrorInfo(printerError, API_Handler.API_PRINTER_INFO_URI.ToString());
                                 }
 
-                                NectaLogService.WriteLog("Printer has an error, please check the printer info below:", LogLevels.ERROR);
-                                var options = new JsonSerializerOptions { WriteIndented = true };
-                                NectaLogService.WriteLog(JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
-                                API_Handler.SendPrinterErrorInfo(printerError, API_Handler.API_PRINTER_INFO_URI.ToString());
-                                break;
+                                Thread.Sleep(API_Handler.API_REQUEST_INTERVAL);
                             }
-
-                            Thread.Sleep(500);
+                            else
+                            {
+                                printerIsInError = false;
+                            }
                         }
+
+                        NectaApp.printingInProgress = true;
+
+                        //call PrintReceipt from main thread
+                        NectaApp.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });
                     }
                     catch (Exception ex)
                     {

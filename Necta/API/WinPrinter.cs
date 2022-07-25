@@ -15,10 +15,32 @@ namespace Necta.API
             PrintQueue printQueue = printServer.GetPrintQueue(printerName);
             printQueue.Refresh();
 
+            bool printingError = false;
+
+            try
+            {
+                var printJobEnum = printQueue.GetPrintJobInfoCollection().GetEnumerator();
+
+                for (int i = 0; i < 2; i++)
+                {
+                    var nextExist = printJobEnum.MoveNext();
+
+                    if (i == 1 && nextExist)//2 printing jobs are in the queue
+                        printingError = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
             var JSON_RawPrinterInfo = JsonSerializer.Serialize(printQueue);
 
             var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var PrinterInfo = JsonSerializer.Deserialize<PrinterInfo>(JSON_RawPrinterInfo, options);
+
+            if (printingError)
+                PrinterInfo.QueueStatus = PrintQueueStatus.Error;
 
             return PrinterInfo;
         }
