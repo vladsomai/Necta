@@ -9,6 +9,8 @@ namespace Necta.NectaServices
     class NectaService
     {
         public delegate void PrintReceiptDelegate(Receipt receipt);
+        private static DateTime timeWhenPrintingShouldTimeout = DateTime.Now;
+        private static DateTime currentTime = DateTime.Now;
 
         public static void RunService()
         {
@@ -18,14 +20,11 @@ namespace Necta.NectaServices
 
             while (true)
             {
-                while (NectaApp.printingInProgress)
-                    Thread.Sleep(500);
-
                 Thread.Sleep(API_Handler.API_REQUEST_INTERVAL);
 
                 if (API_Handler.API_GET_URI == null || API_Handler.API_UPDATE_URI == null)
                 {
-                    NectaLogService.WriteLog("Fetching data not possible because API GET or UPDATE URIs are not valid, please set valid URIs!", LogLevels.ERROR);
+                    NectaLogService.WriteLog("Fetching data not possible because GET / UPDATE / INFO URIs are not valid, please set valid URIs!", LogLevels.ERROR);
                     continue;
                 }
 
@@ -56,7 +55,6 @@ namespace Necta.NectaServices
                     try
                     {
                         printer = WinPrinter.GetPrinterInfo(receipt.PrinterName);
-
                     }
                     catch (Exception ex)
                     {
@@ -89,10 +87,40 @@ namespace Necta.NectaServices
                             continue;
                         }
 
-
                         NectaApp.printingInProgress = true;
+                        currentTime = DateTime.Now;
+                        timeWhenPrintingShouldTimeout = DateTime.Now.AddSeconds(2);
+
                         //call PrintReceipt from main thread
                         NectaApp.MainThreadDispatcher.Invoke(PRdel, new object[] { receipt });
+
+                        while (NectaApp.printingInProgress)
+                        {
+                            //for printing timout -> this can occur when Win32 api does not receive an error status from printer
+                            currentTime = DateTime.Now;
+
+                            if (currentTime > timeWhenPrintingShouldTimeout)
+                            {
+                                PrinterError printerError = new PrinterError();
+                                printerError.API_GET_URI = API_Handler.API_GET_URI.ToString();
+                                printerError.PrinterID = receipt.Printer.ToString();
+                                printerError.printerInfo = "printingError";
+
+                                if (API_Handler.API_PRINTER_INFO_URI == null)
+                                {
+                                    NectaLogService.WriteLog("Cannot send printer info because PRINTER_INFO_URI is not valid.", LogLevels.ERROR);
+                                    break;
+                                }
+
+                                NectaLogService.WriteLog("Printer has an error, please check the printer info below:", LogLevels.ERROR);
+                                var options = new JsonSerializerOptions { WriteIndented = true };
+                                NectaLogService.WriteLog(JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
+                                API_Handler.SendPrinterErrorInfo(printerError, API_Handler.API_PRINTER_INFO_URI.ToString());
+                                break;
+                            }
+
+                            Thread.Sleep(500);
+                        }
                     }
                     catch (Exception ex)
                     {

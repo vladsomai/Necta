@@ -17,7 +17,6 @@ namespace Necta
     {
         public static PasswordModal mInstance = null;
         private NectaApp MainInstance = null;
-        private static bool passwordOK = false;
 
         public static void CreatePasswordModal(NectaApp instance)
         {
@@ -37,15 +36,13 @@ namespace Necta
 
         private void PasswordButton_Click(object sender, EventArgs e)
         {
-            passwordOK = false;
 
             var currentPassword = ConfigContent<PasswordType>.ReadConfig(NectaConfigService.nectaPasswordFile);
             if (currentPassword.Password == Hasher.GetSha256Hash(PasswordTextbox.Text))
             {
-                passwordOK = true;
                 hidePasswordForm();
                 MainInstance.SetTextboxesToVisible(true);
-                MainInstance.showMainFrom();
+                MainInstance.ShowMainFrom();
             }
             else
                 MessageBox.Show(this, "Invalid password, please try again.", "Error!", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.RightAlign);
@@ -53,8 +50,8 @@ namespace Necta
 
         private void PasswordForm_Closing(object e, FormClosingEventArgs ev)
         {
-            if (!passwordOK)
-                Application.Exit();
+            hidePasswordForm();
+            MainInstance.ShowNotifyIcon();
         }
 
         private void hidePasswordForm()
@@ -65,9 +62,8 @@ namespace Necta
 
         public void showPasswordFrom()
         {
-            MainInstance.hideMainForm();
+            MainInstance.HideMainForm();
             PasswordTextbox.Text = "";
-            passwordOK = false;
             Show();
             this.WindowState = FormWindowState.Normal;
         }

@@ -160,6 +160,11 @@ namespace Necta
             CheckPassword();
         }
 
+        public void ShowNotifyIcon()
+        {
+            NectaNotifyIcon1.Visible = true;
+        }
+
         private void onResize(object sender, EventArgs e)
         {
             if (this.WindowState == FormWindowState.Normal)
@@ -196,7 +201,7 @@ namespace Necta
                     NectaLogService.WriteLog("Setting HTML content on page", LogLevels.INFO);
                     await page.SetContentAsync(html, navigtionOptions);
                     await page.WaitForTimeoutAsync(1000);
-                    NectaLogService.WriteLog("Saving the PDF", LogLevels.INFO);
+                    NectaLogService.WriteLog("Saving the page as PDF", LogLevels.INFO);
                     await page.PdfAsync(PathToReceipt, new PdfOptions() { PrintBackground = true, OmitBackground = false });
                 }
                 await browserForConverting.CloseAsync();
@@ -229,14 +234,14 @@ namespace Necta
             PasswordModal.mInstance.showPasswordFrom();
         }
 
-        public void hideMainForm()
+        public void HideMainForm()
         {
             Hide();
             this.WindowState = FormWindowState.Minimized;
             NectaNotifyIcon1.Visible = false;
         }
 
-        public void showMainFrom()
+        public void ShowMainFrom()
         {
             Show();
             this.WindowState = FormWindowState.Normal;
