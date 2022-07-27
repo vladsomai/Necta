@@ -54,11 +54,10 @@ namespace Necta.NectaServices
                         File.WriteAllLines(currentLogFile, logFileContentAfterDeletion);
                     }
                 }
-
             }
         }
 
-        public static void WriteLog(string log, string logLevel)
+        public static void WriteLog(string source, string log, string logLevel)
         {
             lock (lockFile)
             {
@@ -66,7 +65,7 @@ namespace Necta.NectaServices
                 using (StreamWriter file = new StreamWriter(currentLogFile, append: true))
 
                 {
-                    file.WriteLine(DateTime.Now.ToString() + " | " + logLevel + " | " + log);
+                    file.WriteLine(DateTime.Now.ToString() + " | " + source + " | " + logLevel + " | " + log);
                 }
             }
         }

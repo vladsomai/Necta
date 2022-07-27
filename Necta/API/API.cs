@@ -5,13 +5,13 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Necta.API
 {
     public class API_Handler
     {
-        private static readonly HttpClient client = new HttpClient();
         private const string updateReceiptID_Prefix = "&row=";
 
         #region Configuration_variables
@@ -49,7 +49,6 @@ namespace Necta.API
         public static List<Receipt> FetchReceipts(string uri)
         {
             var result = Task.Run(async () => await MakeGetHTTP_request(uri)).Result;
-
             try
             {
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -58,8 +57,8 @@ namespace Necta.API
             }
             catch (Exception)
             {
-                NectaLogService.WriteLog("The received data from the API is not a valid JSON!", LogLevels.ERROR);
-                NectaLogService.WriteLog("The following data was received: " + result, LogLevels.ERROR);
+                NectaLogService.WriteLog(Thread.CurrentThread.Name, "The received data from the API is not a valid JSON!", LogLevels.ERROR);
+                NectaLogService.WriteLog(Thread.CurrentThread.Name, "The following data was received: " + result, LogLevels.ERROR);
                 return new List<Receipt>();
             }
         }
@@ -82,6 +81,7 @@ namespace Necta.API
 
         private static async Task<string> MakeGetHTTP_request(string uri)
         {
+            HttpClient client = new HttpClient();
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             var response = await client.GetStringAsync(uri);
@@ -90,6 +90,8 @@ namespace Necta.API
 
         private static async Task<HttpResponseMessage> MakePostHTTP_request(string uri, string data)
         {
+            HttpClient client = new HttpClient();
+
             StringContent stringContent = new StringContent(data);
 
             client.DefaultRequestHeaders.Accept.Clear();

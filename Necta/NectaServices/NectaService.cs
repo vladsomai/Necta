@@ -12,6 +12,7 @@ namespace Necta.NectaServices
 
         public static void RunService()
         {
+            Thread.CurrentThread.Name = "Service thread";
             PrintReceiptDelegate PRdel = new PrintReceiptDelegate(NectaApp.PrintReceipt);
 
             List<Receipt> receipts = null;
@@ -25,25 +26,36 @@ namespace Necta.NectaServices
 
                 if (API_Handler.API_GET_URI == null || API_Handler.API_UPDATE_URI == null)
                 {
-                    NectaLogService.WriteLog("Fetching data not possible because GET / UPDATE / INFO URIs are not valid, please set valid URIs!", LogLevels.ERROR);
+                    NectaLogService.WriteLog(Thread.CurrentThread.Name, "Fetching data not possible because GET / UPDATE / INFO URIs are not valid, please set valid URIs!", LogLevels.ERROR);
                     continue;
                 }
 
                 try
                 {
-                    NectaLogService.WriteLog("Fetching new receipts from address: " + API_Handler.API_GET_URI.ToString(), LogLevels.INFO);
+                    NectaLogService.WriteLog(Thread.CurrentThread.Name, "Fetching new receipts from address: " + API_Handler.API_GET_URI.ToString(), LogLevels.INFO);
                     receipts = API_Handler.FetchReceipts(API_Handler.API_GET_URI.ToString());
                 }
                 catch (Exception ex)
                 {
-                    NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
-                    NectaLogService.WriteLog(ex.InnerException?.Message, LogLevels.ERROR);
+                    NectaLogService.WriteLog(Thread.CurrentThread.Name, ex.Message, LogLevels.ERROR);
+                    NectaLogService.WriteLog(Thread.CurrentThread.Name, ex.InnerException?.Message, LogLevels.ERROR);
+
+                    try
+                    {
+                        Thread.ResetAbort();
+                    }
+                    catch(Exception exe)
+                    {
+                        NectaLogService.WriteLog(Thread.CurrentThread.Name, exe.Message, LogLevels.ERROR);
+                        NectaLogService.WriteLog(Thread.CurrentThread.Name, exe.InnerException?.Message, LogLevels.ERROR);
+                    }
+
                     continue;
                 }
 
                 if (receipts.Count == 0)
                 {
-                    NectaLogService.WriteLog("No receipts received from API", LogLevels.INFO);
+                    NectaLogService.WriteLog(Thread.CurrentThread.Name, "No receipts received from API", LogLevels.INFO);
                     continue;
                 }
 
@@ -64,9 +76,9 @@ namespace Necta.NectaServices
                             }
                             catch (Exception ex)
                             {
-                                NectaLogService.WriteLog("The Printer's info could not be fetched because: ", LogLevels.ERROR);
-                                NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
-                                NectaLogService.WriteLog("The Printer's info must be fetched before sending a printing command, please solve the issue.", LogLevels.ERROR);
+                                NectaLogService.WriteLog(Thread.CurrentThread.Name, "The Printer's info could not be fetched because: ", LogLevels.ERROR);
+                                NectaLogService.WriteLog(Thread.CurrentThread.Name, ex.Message, LogLevels.ERROR);
+                                NectaLogService.WriteLog(Thread.CurrentThread.Name, "The Printer's info must be fetched before sending a printing command, please solve the issue.", LogLevels.ERROR);
                             }
 
                             if (printer == null)
@@ -86,13 +98,13 @@ namespace Necta.NectaServices
 
                                 if (API_Handler.API_PRINTER_INFO_URI == null)
                                 {
-                                    NectaLogService.WriteLog("Cannot send printer info because PRINTER_INFO_URI is not valid.", LogLevels.ERROR);
+                                    NectaLogService.WriteLog(Thread.CurrentThread.Name, "Cannot send printer info because PRINTER_INFO_URI is not valid.", LogLevels.ERROR);
                                 }
                                 else
                                 {
-                                    NectaLogService.WriteLog("Printer has an error, please check the printer info below:", LogLevels.ERROR);
+                                    NectaLogService.WriteLog(Thread.CurrentThread.Name, "Printer has an error, please check the printer info below:", LogLevels.ERROR);
                                     var options = new JsonSerializerOptions { WriteIndented = true };
-                                    NectaLogService.WriteLog(JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
+                                    NectaLogService.WriteLog(Thread.CurrentThread.Name, JsonSerializer.Serialize(printerError, options), LogLevels.ERROR);
                                     API_Handler.SendPrinterErrorInfo(printerError, API_Handler.API_PRINTER_INFO_URI.ToString());
                                 }
 
@@ -111,8 +123,8 @@ namespace Necta.NectaServices
                     }
                     catch (Exception ex)
                     {
-                        NectaLogService.WriteLog(ex.Message, LogLevels.ERROR);
-                        NectaLogService.WriteLog(ex.InnerException?.Message, LogLevels.ERROR);
+                        NectaLogService.WriteLog(Thread.CurrentThread.Name, ex.Message, LogLevels.ERROR);
+                        NectaLogService.WriteLog(Thread.CurrentThread.Name, ex.InnerException?.Message, LogLevels.ERROR);
                     }
                 }
             }
