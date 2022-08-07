@@ -89,7 +89,8 @@ namespace Necta
                 API_Handler.API_PRINTER_INFO_URI = printerInfoURI;
                 API_Handler.API_REQUEST_INTERVAL = (int)ApiRequestInterval_value.Value;
 
-                NectaConfigService.SaveNewConfig();
+                if (!isFirstPaint)//do not save config when app starts because it is handled in Initialize
+                    NectaConfigService.SaveNewConfig();
 
                 if (API_Handler.API_REQUEST_INTERVAL < 3000)
                     NectaLogService.WriteLog(Thread.CurrentThread.Name, "The request interval value is too low, please enter a value greater than 3000ms!", LogLevels.WARNING);
